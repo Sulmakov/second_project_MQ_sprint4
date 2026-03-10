@@ -12,45 +12,65 @@ final class MovieQuizViewController: UIViewController {
     private var correctAnswers = 0
     
     private let questions: [QuizQuestion] = [
-        QuizQuestion(image: "The Godfather",
-                     text: "Рейтинг этого фильма больше чем 6?",
-                     correctAnswer: true),
+        QuizQuestion(
+            imageName: "The Godfather",
+            text: "Рейтинг этого фильма больше чем 6?",
+            correctAnswer: true
+        ),
         
-        QuizQuestion(image: "The Dark Knight",
-                     text: "Рейтинг этого фильма больше чем 6?",
-                     correctAnswer: true),
+        QuizQuestion(
+            imageName: "The Dark Knight",
+            text: "Рейтинг этого фильма больше чем 6?",
+            correctAnswer: true
+        ),
         
-        QuizQuestion(image: "Kill Bill",
-                     text: "Рейтинг этого фильма больше чем 6?",
-                     correctAnswer: true),
+        QuizQuestion(
+            imageName: "Kill Bill",
+            text: "Рейтинг этого фильма больше чем 6?",
+            correctAnswer: true
+        ),
         
-        QuizQuestion(image: "The Avengers",
-                     text: "Рейтинг этого фильма больше чем 6?",
-                     correctAnswer: true),
+        QuizQuestion(
+            imageName: "The Avengers",
+            text: "Рейтинг этого фильма больше чем 6?",
+            correctAnswer: true
+        ),
         
-        QuizQuestion(image: "Deadpool",
-                     text: "Рейтинг этого фильма больше чем 6?",
-                     correctAnswer: true),
+        QuizQuestion(
+            imageName: "Deadpool",
+            text: "Рейтинг этого фильма больше чем 6?",
+            correctAnswer: true
+        ),
         
-        QuizQuestion(image: "The Green Knight",
-                     text: "Рейтинг этого фильма больше чем 6?",
-                     correctAnswer: true),
+        QuizQuestion(
+            imageName: "The Green Knight",
+            text: "Рейтинг этого фильма больше чем 6?",
+            correctAnswer: true
+        ),
         
-        QuizQuestion(image: "Old",
-                     text: "Рейтинг этого фильма больше чем 6?",
-                     correctAnswer: false),
+        QuizQuestion(
+            imageName: "Old",
+            text: "Рейтинг этого фильма больше чем 6?",
+            correctAnswer: false
+        ),
         
-        QuizQuestion(image: "The Ice Age Adventures of Buck Wild",
-                     text: "Рейтинг этого фильма больше чем 6?",
-                     correctAnswer: false),
+        QuizQuestion(
+            imageName: "The Ice Age Adventures of Buck Wild",
+            text: "Рейтинг этого фильма больше чем 6?",
+            correctAnswer: false
+        ),
         
-        QuizQuestion(image: "Tesla",
-                     text: "Рейтинг этого фильма больше чем 6?",
-                     correctAnswer: false),
+        QuizQuestion(
+            imageName: "Tesla",
+            text: "Рейтинг этого фильма больше чем 6?",
+            correctAnswer: false
+        ),
         
-        QuizQuestion(image: "Vivarium",
-                     text: "Рейтинг этого фильма больше чем 6?",
-                     correctAnswer: false)
+        QuizQuestion(
+            imageName: "Vivarium",
+            text: "Рейтинг этого фильма больше чем 6?",
+            correctAnswer: false
+        )
     ]
     
     // MARK: - Lifecycle
@@ -63,17 +83,13 @@ final class MovieQuizViewController: UIViewController {
     @IBAction private func yesButtonClicked(_ sender: Any) {
         
         let currentQuestion = questions[currentQuestionIndex]
-        let givenAnswer = true
-        
-        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+        showAnswerResult(isCorrect: currentQuestion.correctAnswer)
     }
     
     @IBAction private func noButtonClicked(_ sender: Any) {
         
         let currentQuestion = questions[currentQuestionIndex]
-        let givenAnswer = false
-        
-        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+        showAnswerResult(isCorrect: !currentQuestion.correctAnswer)
     }
     
     private func showCurrentQuestion() {
@@ -87,12 +103,13 @@ final class MovieQuizViewController: UIViewController {
         textLabel.text = step.question
         counterLabel.text = step.questionNumber
         imageView.layer.borderWidth = 0
-        
+        yesButton.isEnabled = true
+        noButton.isEnabled = true
     }
     
     
     private struct QuizQuestion {
-        let image: String
+        let imageName: String
         let text: String
         let correctAnswer: Bool
     }
@@ -126,18 +143,21 @@ final class MovieQuizViewController: UIViewController {
         
         alert.addAction(action)
         
-        self.present(alert, animated: true, completion: nil)
+        present(alert, animated: true, completion: nil)
     }
     
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
         let questionStep = QuizStepViewModel(
-            image: UIImage(named: model.image) ?? UIImage(),
+            image: UIImage(named: model.imageName) ?? UIImage(),
             question: model.text,
             questionNumber: "\(currentQuestionIndex + 1)/\(questions.count)")
         return questionStep
     }
     
     private func showAnswerResult(isCorrect: Bool) {
+        yesButton.isEnabled = false
+        noButton.isEnabled = false
+        
         if isCorrect {
             correctAnswers += 1
         }
@@ -157,7 +177,7 @@ final class MovieQuizViewController: UIViewController {
                 title: "Этот раунд окончен!",
                 text: text,
                 buttonText: "Сыграть ещё раз")
-                show(quiz: viewModel)
+            show(quiz: viewModel)
         } else {
             currentQuestionIndex += 1
             let nextQuestion = questions[currentQuestionIndex]
@@ -168,21 +188,3 @@ final class MovieQuizViewController: UIViewController {
     }
     
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
