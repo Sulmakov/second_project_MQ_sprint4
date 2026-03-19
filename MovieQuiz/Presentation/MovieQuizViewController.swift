@@ -1,6 +1,6 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController {
+final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     @IBOutlet private var imageView: UIImageView!
     @IBOutlet private var textLabel: UILabel!
@@ -11,21 +11,39 @@ final class MovieQuizViewController: UIViewController {
     private var currentQuestionIndex = 0
     private var correctAnswers = 0
     private let questionsAmount: Int = 10
-    private var questionFactory: QuestionFactoryProtocol = QuestionFactory()
+    private var questionFactory: QuestionFactoryProtocol?
     private var currentQuestion: QuizQuestion?
+    private var alertPresenter: AlertPresenter?
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        showCurrentQuestion()
+        alertPresenter = AlertPresenter()
+        
+        let factory = QuestionFactory()
+        factory.setup(delegate: self)
+        questionFactory = factory
+        questionFactory?.requestNextQuestion()
     }
-    
+    // MARK: - QuestionFactoryDelegate
+    func didReceiveNextQuestion(question: QuizQuestion?) {
+        guard let question = question else { return }
+        
+        currentQuestion = question
+        let viewModel = convert(model: question)
+        
+        DispatchQueue.main.async {
+            [weak self] in
+            self?.show(quiz: viewModel)
+        }
+    }
+    // MARK: - Actions
     @IBAction private func yesButtonClicked(_ sender: Any) {
         
         guard let currentQuestion = currentQuestion else {
             return
         }
-
+        
         showAnswerResult(isCorrect: currentQuestion.correctAnswer)
     }
     
@@ -34,17 +52,11 @@ final class MovieQuizViewController: UIViewController {
         guard let currentQuestion = currentQuestion else {
             return
         }
-   
+        
         showAnswerResult(isCorrect: !currentQuestion.correctAnswer)
     }
     
-    private func showCurrentQuestion() {
-        if let firstQuestion = questionFactory.requestNextQuestion() {
-            currentQuestion = firstQuestion
-            let viewModel = convert(model: firstQuestion)
-            show(quiz: viewModel)
-        }
-    }
+    // MARK: Private functions
     
     private func show(quiz step: QuizStepViewModel) {
         imageView.image = step.image
@@ -56,24 +68,18 @@ final class MovieQuizViewController: UIViewController {
     }
     
     private func show(quiz result: QuizResultsViewModel) {
-        let alert = UIAlertController(
+        let model = AlertModel(
             title: result.title,
             message: result.text,
-            preferredStyle: .alert)
-        
-        let action = UIAlertAction(title: result.buttonText, style: .default) { _ in
-            self.currentQuestionIndex = 0
-            self.correctAnswers = 0
-            
-            if let firstQuestion = self.questionFactory.requestNextQuestion(){
-                self.currentQuestion = firstQuestion
-                let viewModel = self.convert(model: firstQuestion)
-                self.show(quiz: viewModel)
+            buttonText: result.buttonText,
+            completion: { [weak self] in
+                self?.currentQuestionIndex = 0
+                self?.correctAnswers = 0
+                self?.questionFactory?.requestNextQuestion()
             }
-        }
-        alert.addAction(action)
+        )
         
-        present(alert, animated: true, completion: nil)
+        alertPresenter?.show(in: self, model: model)
     }
     
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
@@ -112,12 +118,8 @@ final class MovieQuizViewController: UIViewController {
             show(quiz: viewModel)
         } else {
             currentQuestionIndex += 1
-            guard let nextQuestion = questionFactory.requestNextQuestion() else { return }
-            currentQuestion = nextQuestion
-            let viewModel = convert(model: nextQuestion)
-            
-            show(quiz: viewModel)
+            questionFactory?.requestNextQuestion()
         }
     }
-    
 }
+
